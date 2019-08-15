@@ -1,0 +1,199 @@
+
+`timescale 1 ns / 1 ps
+
+	module stream_ip_v1_0 #
+	(
+		// Users to add parameters here
+
+		// User parameters ends
+		// Do not modify the parameters beyond this line
+
+
+		// Parameters of Axi Slave Bus Interface S00_AXIS
+		parameter integer C_S00_AXIS_TDATA_WIDTH	= 32,
+
+		// Parameters of Axi Master Bus Interface M00_AXIS
+		parameter integer C_M00_AXIS_TDATA_WIDTH	= 32,
+		parameter integer C_M00_AXIS_START_COUNT	= 32,
+
+		// Parameters of Axi Slave Bus Interface S01_AXIS
+		parameter integer C_S01_AXIS_TDATA_WIDTH	= 32,
+
+		// Parameters of Axi Slave Bus Interface S02_AXIS
+		parameter integer C_S02_AXIS_TDATA_WIDTH	= 32,
+
+		// Parameters of Axi Master Bus Interface M01_AXIS
+		parameter integer C_M01_AXIS_TDATA_WIDTH	= 32,
+		parameter integer C_M01_AXIS_START_COUNT	= 32,
+
+		// Parameters of Axi Master Bus Interface M02_AXIS
+		parameter integer C_M02_AXIS_TDATA_WIDTH	= 32,
+		parameter integer C_M02_AXIS_START_COUNT	= 32
+	)
+	(
+		// Users to add ports here
+
+		// User ports ends
+		// Do not modify the ports beyond this line
+
+
+		// Ports of Axi Slave Bus Interface S00_AXIS
+		input wire  s00_axis_aclk,
+		input wire  s00_axis_aresetn,
+		output wire  s00_axis_tready,
+		input wire [C_S00_AXIS_TDATA_WIDTH-1 : 0] s00_axis_tdata,
+		//input wire [(C_S00_AXIS_TDATA_WIDTH/8)-1 : 0] s00_axis_tstrb,//this is not in the mit version******
+		input wire  s00_axis_tlast,
+		input wire  s00_axis_tvalid,
+
+		// Ports of Axi Master Bus Interface M00_AXIS
+		input wire  m00_axis_aclk,
+		input wire  m00_axis_aresetn,
+		output wire  m00_axis_tvalid,
+		output wire [C_M00_AXIS_TDATA_WIDTH-1 : 0] m00_axis_tdata,
+		//output wire [(C_M00_AXIS_TDATA_WIDTH/8)-1 : 0] m00_axis_tstrb,//this is not in the mit version******
+		output wire  m00_axis_tlast,
+		input wire  m00_axis_tready,
+
+		// Ports of Axi Slave Bus Interface S01_AXIS
+		input wire  s01_axis_aclk,
+		input wire  s01_axis_aresetn,
+		output wire  s01_axis_tready,
+		input wire [C_S01_AXIS_TDATA_WIDTH-1 : 0] s01_axis_tdata,
+		//input wire [(C_S01_AXIS_TDATA_WIDTH/8)-1 : 0] s01_axis_tstrb,
+		input wire  s01_axis_tlast,
+		input wire  s01_axis_tvalid,
+
+		// Ports of Axi Slave Bus Interface S02_AXIS
+		input wire  s02_axis_aclk,
+		input wire  s02_axis_aresetn,
+		output wire  s02_axis_tready,
+		input wire [C_S02_AXIS_TDATA_WIDTH-1 : 0] s02_axis_tdata,
+		//input wire [(C_S02_AXIS_TDATA_WIDTH/8)-1 : 0] s02_axis_tstrb,
+		input wire  s02_axis_tlast,
+		input wire  s02_axis_tvalid,
+
+		// Ports of Axi Master Bus Interface M01_AXIS
+		input wire  m01_axis_aclk,
+		input wire  m01_axis_aresetn,
+		output wire  m01_axis_tvalid,
+		output wire [C_M01_AXIS_TDATA_WIDTH-1 : 0] m01_axis_tdata,
+		//output wire [(C_M01_AXIS_TDATA_WIDTH/8)-1 : 0] m01_axis_tstrb,
+		output wire  m01_axis_tlast,
+		input wire  m01_axis_tready,
+
+		// Ports of Axi Master Bus Interface M02_AXIS
+		input wire  m02_axis_aclk,
+		input wire  m02_axis_aresetn,
+		output wire  m02_axis_tvalid,
+		output wire [C_M02_AXIS_TDATA_WIDTH-1 : 0] m02_axis_tdata,
+		//output wire [(C_M02_AXIS_TDATA_WIDTH/8)-1 : 0] m02_axis_tstrb,
+		output wire  m02_axis_tlast,
+		input wire  m02_axis_tready
+	);
+
+
+	// Add user logic here
+	//Set up for x-value stream/////////////////////////
+	reg m00_axis_tvalid_reg;
+	reg m00_axis_tlast_reg;
+	reg [C_M00_AXIS_TDATA_WIDTH-1 : 0] m00_axis_tdata_reg;
+	
+    reg s00_axis_tready_reg;
+    
+    assign m00_axis_tvalid = m00_axis_tvalid_reg;
+    assign m00_axis_tlast = m00_axis_tlast_reg;
+    assign m00_axis_tdata = m00_axis_tdata_reg;
+    assign s00_axis_tready = s00_axis_tready_reg;
+    
+    always @(posedge s00_axis_aclk)begin
+        if (s00_axis_aresetn==0)begin
+            s00_axis_tready_reg <= 0;
+        end else begin
+            s00_axis_tready_reg <= m00_axis_tready;
+        end
+    end
+	
+	always @(posedge m00_axis_aclk)begin
+        if (m00_axis_aresetn==0)begin
+            m00_axis_tvalid_reg <= 0;
+            m00_axis_tlast_reg <= 0;
+            m00_axis_tdata_reg <= 0;
+        end else begin
+            m00_axis_tvalid_reg <= s00_axis_tvalid;
+            m00_axis_tlast_reg <= s00_axis_tlast;
+            m00_axis_tdata_reg <=s00_axis_tdata*s00_axis_tdata; //Square the x value
+        end
+    end
+	
+	//////////////////////////////////////////////////////////////////////////////
+	//Set up for y value stream s01_axis m01_axis////////////////////////////////
+	
+	reg m01_axis_tvalid_reg;
+	reg m01_axis_tlast_reg;
+	reg [C_M01_AXIS_TDATA_WIDTH-1 : 0] m01_axis_tdata_reg;
+	
+    reg s01_axis_tready_reg;
+    
+    assign m01_axis_tvalid = m01_axis_tvalid_reg;
+    assign m01_axis_tlast = m01_axis_tlast_reg;
+    assign m01_axis_tdata = m01_axis_tdata_reg;
+    assign s01_axis_tready = s01_axis_tready_reg;
+    
+    always @(posedge s01_axis_aclk)begin
+        if (s01_axis_aresetn==0)begin
+            s01_axis_tready_reg <= 0;
+        end else begin
+            s01_axis_tready_reg <= m01_axis_tready;
+        end
+    end
+	
+	always @(posedge m01_axis_aclk)begin
+        if (m01_axis_aresetn==0)begin
+            m01_axis_tvalid_reg <= 0;
+            m01_axis_tlast_reg <= 0;
+            m01_axis_tdata_reg <= 0;
+        end else begin
+            m01_axis_tvalid_reg <= s01_axis_tvalid;
+            m01_axis_tlast_reg <= s01_axis_tlast;
+            m01_axis_tdata_reg <=10*s00_axis_tdata + 300; //multiply y-value by 10 + 300
+        end
+    end	
+	
+	/////////////////////////////////////////////////////////////////////////////////
+	//Set up for z value stream s02_axis m02_axis////////////////////////////////////
+	reg m02_axis_tvalid_reg;
+	reg m02_axis_tlast_reg;
+	reg [C_M02_AXIS_TDATA_WIDTH-1 : 0] m02_axis_tdata_reg;
+	
+    reg s02_axis_tready_reg;
+    
+    assign m02_axis_tvalid = m02_axis_tvalid_reg;
+    assign m02_axis_tlast = m02_axis_tlast_reg;
+    assign m02_axis_tdata = m02_axis_tdata_reg;
+    assign s02_axis_tready = s02_axis_tready_reg;
+    
+    always @(posedge s02_axis_aclk)begin
+        if (s02_axis_aresetn==0)begin
+            s02_axis_tready_reg <= 0;
+        end else begin
+            s02_axis_tready_reg <= m02_axis_tready;
+        end
+    end
+	
+	always @(posedge m02_axis_aclk)begin
+        if (m02_axis_aresetn==0)begin
+            m02_axis_tvalid_reg <= 0;
+            m02_axis_tlast_reg <= 0;
+            m02_axis_tdata_reg <= 0;
+        end else begin
+            m02_axis_tvalid_reg <= s02_axis_tvalid;
+            m02_axis_tlast_reg <= s02_axis_tlast;
+            m02_axis_tdata_reg <=5*s02_axis_tdata + 150; //multiply z-value by 5 + 150
+        end
+    end	
+		
+	
+	// User logic ends
+
+	endmodule
